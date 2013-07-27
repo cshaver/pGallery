@@ -5,7 +5,6 @@
 
   var pluginName = 'pGallery',
   defaults = {
-    mobileModalEnabled: true,
     printableVersionText: "Printable Version",
     prevPhotoText: "< Previous Photo",
     nextPhotoText: "Next Photo >",
@@ -14,6 +13,7 @@
     mobileCloseMarkup: "<i class='icon-remove'/>",
     mobilePrevMarkup: "<i class='icon-chevron-left'/>",
     mobileNextMarkup: "<i class='icon-chevron-right'/>",
+    mobileSlide: true
   };
 
   $.fn[pluginName] = function ( options ) {
@@ -92,7 +92,7 @@
 
     this.$mobileNextButton = $("<div id='mobile-next-button'/>");
     this.$mobileNextWrap = $("<div id='mobile-next-wrap'/>").append($("<a href='#'/>").append(this.$mobileNextButton));
-    this.$mobileNextButton.append($(this._defaults.mobileNexteMarkup));
+    this.$mobileNextButton.append($(this._defaults.mobileNextMarkup));
 
     this.$mobileThumbs = $("<ul/>").addClass("mobile-thumbs");
     this.$mobileLoader = $("<div id='mobile-loader'/>");
@@ -483,27 +483,31 @@
   pGallery.prototype.loadOverlayImage = function(image, right){
     right = typeof right !== 'undefined' ? right : true;
     
-    if (right == true){
-      this.$mobileThumbs.children(":visible").hide('slide', {direction: 'left'}, 300);
+    if (this._defaults.mobileSlide){
+      if (right == true){
+        this.$mobileThumbs.children(":visible").hide('slide', {direction: 'left'}, 300);
+        this.$mobileThumbs.children(".m-image"+image).show('slide', {direction: 'right'}, 300);
+      }
+      else{
+        this.$mobileThumbs.children(":visible").hide('slide', {direction: 'right'}, 300);
+        this.$mobileThumbs.children(".m-image"+image).show('slide', {direction: 'left'}, 300);
+      }
     }
     else{
-      this.$mobileThumbs.children(":visible").hide('slide', {direction: 'right'}, 300);
+        this.$mobileThumbs.children(":visible").hide();
+        this.$mobileThumbs.children(".m-image"+image).show();
     }
-
-    if (right == true){
-      this.$mobileThumbs.children(".m-image"+image).show('slide', {direction: 'right'}, 300);
-    }
-    else{
-     this.$mobileThumbs.children(".m-image"+image).show('slide', {direction: 'left'}, 300);
-   }
-    this.fixMargins(image)
  }
 
  pGallery.prototype.overlayImageHtml = function(image){
+  var self = this;
   var title = this.$list.children(".image" + image).children("a").attr('title');
   var medLink = this.$list.children(".image" + image).children("a").attr('href');
-  var html = "<img alt='"+(title != null?title:"")+"' src='"+medLink+"'/>";
-  this.$mobileThumbs.children(".m-image"+image).html(html);
+  var $image = $("<img alt='"+(title != null?title:"")+"' src='"+medLink+"'/>");
+  this.$mobileThumbs.children(".m-image"+image).empty().append($image);
+  $image.on("load", function(){
+    self.fixMargins(image);
+  });
 }
 
 pGallery.prototype.fixMargins = function(image){
@@ -512,12 +516,11 @@ pGallery.prototype.fixMargins = function(image){
   this.$mobileThumbs.find(".m-image"+image+ " > img").each(function(i){
     $(this).css("margin-left",self.realWidth($(this), true)/-2).css("margin-top",self.realHeight($(this), true)/-2);
   
-    //console.log("margin-left: " + $(this).css("margin-left"));
+    // console.log("realWidth: " + self.realWidth($(this), true)/-2);
+    // console.log("realHeight: " + self.realHeight($(this), true)/-2);
+    // console.log("margin-left: " + $(this).css("margin-left"));
+    // console.log("margin-top: " + $(this).css("margin-top"));
   });
-  //this.$mobileThumbs.children(".m-image"+image).children()
-  //                  .css("margin-left",this.realWidth(this.$mobileThumbs.children(".m-image"+image).children())/-2);
-  //this.$mobileThumbs.children(".m-image"+image).children()
-  //                  .css("margin-top", this.realHeight(this.$mobileThumbs.children(".m-image"+image).children())/-2);
 }
 
 pGallery.prototype.hideOverlay = function(){
@@ -528,6 +531,7 @@ pGallery.prototype.hideOverlay = function(){
 
 pGallery.prototype.realWidth = function(obj, limitToWindow){
   var clone = obj.clone();
+  clone.show();
   clone.css("visibility","hidden");
   if (limitToWindow){
     clone.css("max-width", "100%");
@@ -541,6 +545,7 @@ pGallery.prototype.realWidth = function(obj, limitToWindow){
 
 pGallery.prototype.realHeight = function(obj, limitToWindow){
   var clone = obj.clone();
+  clone.show();
   clone.css("visibility","hidden");
   if (limitToWindow){
     clone.css("max-width", "100%");
