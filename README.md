@@ -38,9 +38,11 @@ Have your images like so:
 </ul>
 ```
 Then instantiate the plugin when the document is ready:
+```javascript
     jQuery(document).ready(function($) {
       $('#thumbs').pGallery(options);
     });
+```
 
 Options
 -------
